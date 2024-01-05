@@ -126,6 +126,16 @@ def get_pattern4(board,row,col):
         return [[board[row][col-x] for x in range(3)],
                 [board[row-1][col-x] for x in range(3)]]
 
+def fits(field,piece):
+    if not field or not piece : return False
+    if len(field[0]) !=  len(piece[0]) : return False
+    for row in range(len(field)):
+        for col in range(len(field[0])):
+            if field[row][col] != '0' and piece[row][col] == 1:
+                return False
+    return True
+
+print(fits(get_pattern1(level1,1,2),small_pieces['pb']))
 
 print_board(level1)
 print(get_pattern4(level1,2,2))
