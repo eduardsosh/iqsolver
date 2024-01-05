@@ -106,6 +106,26 @@ def find_free_spot(board):
 # If the starting point yields no results use next free spot and repeat the process
 # Yes it is a long algorithm but it is the only one I could think of rn
   
+def get_pattern1(board,row,col):
+    if col < 9 and row > 1:
+        return [[board[row-x][col] for x in range(3)],
+                [board[row-x][col+1] for x in range(3)]]
 
-   
+def get_pattern2(board,row,col):
+    if col < 8 and row < 5:
+        return [[board[row][col+x] for x in range(3)],
+                [board[row+1][col+x] for x in range(3)]]
+
+def get_pattern3(board,row,col):
+    if col > 0 and row < 3:
+        return [[board[row+x][col] for x in range(3)],
+                [board[row+x][col-1] for x in range(3)]]
+
+def get_pattern4(board,row,col):
+    if col > 1 and row > 0:
+        return [[board[row][col-x] for x in range(3)],
+                [board[row-1][col-x] for x in range(3)]]
+
+
 print_board(level1)
+print(get_pattern4(level1,2,2))
