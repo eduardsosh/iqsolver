@@ -19,50 +19,50 @@ level1 = [['l','l','l','0','c','c','c','c','g','g'],
 
 
 small_pieces = {
-    'la' : [[1,1,1],
-            [1,0,1]],
-    'lb' : [[0,0,1],
-            [1,1,1]],
-    'ga' : [[0,1,1],
-            [1,1,1]],
-    'gb' : [[1,1,1],
-            [0,1,0]],
-    'pa' : [[1,1,1],
-            [0,1,1]],
-    'pb' : [[1,0,0],
-            [1,1,1]],
-    'da' : [[1,0,1],
-            [1,1,1]],
-    'db' : [[1,1,1],
-            [0,1,0]],    
+    'la' : [['l','l','l'],
+            ['l',0,'l']],
+    'lb' : [[0,0,'l'],
+            ['l','l','l']],
+    'ga' : [[0,'g','g'],
+            ['g','g','g']],
+    'gb' : [['g','g','g'],
+            [0,'g',0]],
+    'pa' : [['p','p','p'],
+            [0,'p','p']],
+    'pb' : [['p',0,0],
+            ['p','p','p']],
+    'da' : [['d',0,'d'],
+            ['d','d','d']],
+    'db' : [['d','d','d'],
+            [0,'d',0]],    
 }
 
 
 large_pieces = {
-    'ya' : [[1,1,1,1],
-            [0,0,1,1]],
-    'yb' : [[1,0,0,0],
-            [1,1,1,1]],
-    'oa' : [[0,1,0,1],
-            [1,1,1,1]],
-    'ob' : [[1,1,1,1],
-            [0,1,0,0]],
-    'ra' : [[0,0,0,1],
-            [1,1,1,1]],
-    'rb' : [[1,1,1,1],
-            [1,0,0,1]],
-    'ia' : [[1,1,1,1],
-            [1,1,0,0]],
-    'ib' : [[0,0,1,0],
-            [1,1,1,1]],
-    'ba' : [[1,0,1,0],
-            [1,1,1,1]],
-    'bb' : [[1,1,1,1],
-            [1,0,0,0]],
-    'ca' : [[0,1,1,0],
-            [1,1,1,1]],
-    'cb' : [[1,1,1,1],
-            [0,1,0,0]],
+    'ya' : [['y','y','y','y'],
+            [0,0,'y','y']],
+    'yb' : [['y',0,0,0],
+            ['y','y','y','y']],
+    'oa' : [[0,'o',0,'o'],
+            ['o','o','o','o']],
+    'ob' : [['o','o','o','o'],
+            [0,'o',0,0]],
+    'ra' : [[0,0,0,'r'],
+            ['r','r','r','r']],
+    'rb' : [['r','r','r','r'],
+            ['r',0,0,'r']],
+    'ia' : [['i','i','i','i'],
+            ['i','i',0,0]],
+    'ib' : [[0,0,'i',0],
+            ['i','i','i','i']],
+    'ba' : [['b',0,'b',0],
+            ['b','b','b','b']],
+    'bb' : [['b','b','b','b'],
+            ['b',0,0,0]],
+    'ca' : [[0,'c','c',0],
+            ['c','c','c','c']],
+    'cb' : [['c','c','c','c'],
+            [0,'c',0,0]],
 }
 
 def print_board(board):
@@ -126,14 +126,48 @@ def get_pattern4(board,row,col):
         return [[board[row][col-x] for x in range(3)],
                 [board[row-1][col-x] for x in range(3)]]
 
+def get_pattern5(board,row,col):
+    if col < 9 and row > 2:
+        return [[board[row-x][col] for x in range(4)],
+                [board[row-x][col+1] for x in range(4)]]
+
+def get_pattern6(board,row,col):
+    if col < 7 and row < 5:
+        return [[board[row][col+x] for x in range(4)],
+                [board[row+1][col+x] for x in range(4)]]
+
+def get_pattern7(board,row,col):
+    if col > 0 and row < 2:
+        return [[board[row+x][col] for x in range(4)],
+                [board[row+x][col-1] for x in range(4)]]
+
+def get_pattern8(board,row,col):
+    if col > 2 and row > 0:
+        return [[board[row][col-x] for x in range(4)],
+                [board[row-1][col-x] for x in range(4)]]
+
+
+
 def fits(field,piece):
     if not field or not piece : return False
     if len(field[0]) !=  len(piece[0]) : return False
     for row in range(len(field)):
         for col in range(len(field[0])):
-            if field[row][col] != '0' and piece[row][col] == 1:
+            if field[row][col] != '0' and piece[row][col] != 0:
                 return False
     return True
+
+#Rotations from origin pointing: 1-up 2-right 3-down 4-left
+def insert(board,row,col,piece,rot):
+    #piece lenght
+    n = len(piece[0])
+
+    if rot == 1 :
+        for i in range(n):
+            board[row-i][col] = piece[0][i]
+            board[row-i][col+1] = piece[1][i]
+        
+    
 
 print(fits(get_pattern1(level1,1,2),small_pieces['pb']))
 
