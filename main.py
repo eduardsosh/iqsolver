@@ -1,7 +1,9 @@
-
 # Each point in grid is represented by a letter of the color of the piece in it or 0 for empty
 # Colors: l (lime), y (yellow), b (blue), r (red), g (green), o (orange), p (purple), c (cyan), d (dark blue), i (pink), 0 (empty)
-
+import msvcrt
+import os
+import threading
+import time
 start_board = [['0','0','0','0','0','0','0','0','0','0'],
                ['0','0','0','0','0','0','0','0','0','0'],
                ['0','0','0','0','0','0','0','0','0','0'],
@@ -17,14 +19,51 @@ level1 = [['l','l','l','0','c','c','c','c','g','g'],
           ['b','d','b','0','0','p','p','p','0','y'],
           ['b','b','b','b','0','0','0','0','0','0']]
 
+level20 = [['l','0','0','0','0','p','p','0','b','b'],
+               ['l','0','g','0','0','p','i','0','0','b'],
+               ['l','l','g','g','0','p','i','0','0','b'],
+               ['0','0','g','g','0','i','i','0','d','b'],
+               ['0','0','0','0','0','0','i','d','d','d']]
 
-small_pieces = {
+level2000 =   [['l','o','o','o','o','p','p','c','b','b'],
+               ['l','o','g','o','r','p','i','c','c','b'],
+               ['l','l','g','g','r','p','i','c','c','b'],
+               ['0','0','g','g','r','i','i','c','d','b'],
+               ['0','0','0','0','r','r','i','d','d','d']]
+
+level115 =    [['0','0','0','0','0','p','p','p','0','0'],
+               ['0','0','0','0','g','g','g','p','0','0'],
+               ['0','0','0','0','g','g','0','0','0','0'],
+               ['0','0','0','0','0','0','0','0','0','0'],
+               ['0','0','0','0','0','0','0','0','0','0']]
+
+level50 =     [['l','0','0','0','0','0','o','o','o','o'],
+               ['l','0','0','0','0','0','0','o','0','0'],
+               ['l','l','d','d','d','b','b','b','b','0'],
+               ['0','0','d','0','d','b','0','0','0','0'],
+               ['0','0','0','0','0','0','0','0','0','0']]
+
+level72     = [['y','y','i','i','i','i','0','0','0','0'],
+               ['y','r','i','i','r','0','0','0','0','0'],
+               ['y','r','r','r','r','0','0','0','g','0'],
+               ['y','0','0','0','0','0','0','b','g','g'],
+               ['0','0','0','0','b','b','b','b','g','g']]
+
+leveltest = [['l','l','l','i','c','c','c','c','0','0'],
+          ['l','d','l','i','r','c','c','0','0','0'],
+          ['d','d','i','i','r','p','y','y','y','y'],
+          ['b','d','b','i','r','p','p','p','o','y'],
+          ['b','b','b','b','r','r','o','o','o','o']]
+           
+
+
+all_pieces = {
     'la' : [['l','l','l'],
             ['l','0','l']],
-    'lb' : [['0','0','l'],
-            ['l','l','l']],
-    'ga' : [['0','g','g'],
-            ['g','g','g']],
+    'lb' : [['l','l','l'],
+            ['l','0','0']],
+    'ga' : [['g','g','g'],
+            ['g','g','0']],
     'gb' : [['g','g','g'],
             ['0','g','0']],
     'pa' : [['p','p','p'],
@@ -34,38 +73,36 @@ small_pieces = {
     'da' : [['d','0','d'],
             ['d','d','d']],
     'db' : [['d','d','d'],
-            ['0','d','0']],    
-}
-
-
-large_pieces = {
+            ['0','d','0']],
     'ya' : [['y','y','y','y'],
             ['0','0','y','y']],
     'yb' : [['y','0','0','0'],
             ['y','y','y','y']],
-    'oa' : [['0','o','0','o'],
-            ['o','o','o','o']],
+    'oa' : [['o','o','o','o'],
+            ['o','0','o','0']],
     'ob' : [['o','o','o','o'],
             ['0','o','0','0']],
-    'ra' : [['0','0','0','r'],
-            ['r','r','r','r']],
+    'ra' : [['r','r','r','r'],
+            ['r','0','0','0']],
     'rb' : [['r','r','r','r'],
             ['r','0','0','r']],
     'ia' : [['i','i','i','i'],
             ['i','i','0','0']],
-    'ib' : [['0','0','i','0'],
-            ['i','i','i','i']],
+    'ib' : [['i','i','i','i'],
+            ['0','0','i','0']],
     'ba' : [['b','0','b','0'],
             ['b','b','b','b']],
     'bb' : [['b','b','b','b'],
             ['b','0','0','0']],
-    'ca' : [['0','c','c','0'],
-            ['c','c','c','c']],
+    'ca' : [['c','c','c','c'],
+            ['0','c','c','0']],
     'cb' : [['c','c','c','c'],
-            ['0','c','0','0']],
+            ['0','c','0','0']],    
 }
 
+
 def print_board(board):
+    print('\n')
     for row in board:
         for cell in row:
             print(get_symbols(cell), end=" ")
@@ -90,12 +127,13 @@ def get_symbols(piece):
 
 
 
-def find_free_spot(board):
+def find_free_spots(board):
+    free_spaces = []
     for row in range(len(board)):
         for col in range(len(board[0])):
             if board[row][col] == '0':
-                return row, col
-    return None
+                free_spaces.append((row,col))
+    return free_spaces
 
 
 # Main idea - get a free spot and create 4 3x2 and 4 4x2 patterns -> up right down left.
@@ -105,55 +143,32 @@ def find_free_spot(board):
 # Repeat until there are no more free spots or no free pattern can be created in which case return False
 # If the starting point yields no results use next free spot and repeat the process
 # Yes it is a long algorithm but it is the only one I could think of rn
+
+# Katra rekursijas soli ejam cauri atlikusajiem gabaliem un meklejam pirmo vietu kur ielikt gabalu
+# Ja nav kur ielikt esoso gabalu atgriezamies un meklejam nakamo gabalu
+
   
-def get_pattern1(board,row,col):
-    if col < 9 and row > 1:
-        return [[board[row-x][col] for x in range(3)],
-                [board[row-x][col+1] for x in range(3)]]
-
-def get_pattern2(board,row,col):
-    if col < 8 and row < 5:
-        return [[board[row][col+x] for x in range(3)],
-                [board[row+1][col+x] for x in range(3)]]
-
-def get_pattern3(board,row,col):
-    if col > 0 and row < 3:
-        return [[board[row+x][col] for x in range(3)],
-                [board[row+x][col-1] for x in range(3)]]
-
-def get_pattern4(board,row,col):
-    if col > 1 and row > 0:
-        return [[board[row][col-x] for x in range(3)],
-                [board[row-1][col-x] for x in range(3)]]
-
-def get_pattern5(board,row,col):
-    if col < 9 and row > 2:
-        return [[board[row-x][col] for x in range(4)],
-                [board[row-x][col+1] for x in range(4)]]
-
-def get_pattern6(board,row,col):
-    if col < 7 and row < 5:
-        return [[board[row][col+x] for x in range(4)],
-                [board[row+1][col+x] for x in range(4)]]
-
-def get_pattern7(board,row,col):
-    if col > 0 and row < 2:
-        return [[board[row+x][col] for x in range(4)],
-                [board[row+x][col-1] for x in range(4)]]
-
-def get_pattern8(board,row,col):
-    if col > 2 and row > 0:
-        return [[board[row][col-x] for x in range(4)],
-                [board[row-1][col-x] for x in range(4)]]
+def get_pattern(board, row, col, direction, length):
+    if direction == 1 and col < len(board[0]) - 1 and row >= length - 1:
+        return [[board[row-x][col] for x in range(length)],[ board[row-x][col+1] for x in range(length)]]
+    elif direction == 2 and col <= len(board[0]) - length and row < len(board) - 1:
+        return [[board[row][col+x] for x in range(length)],[ board[row+1][col+x] for x in range(length)]]
+    elif direction == 3 and col > 0 and row <= len(board) - length:
+        return [[board[row+x][col] for x in range(length)],[ board[row+x][col-1] for x in range(length)]]
+    elif direction == 4 and col >= length and row > 0:
+        return [[board[row][col-x] for x in range(length)],[ board[row-1][col-x] for x in range(length)]]
+    #print("No pattern found")
+    return None
 
 
 
 def fits(field,piece):
-    if not field or not piece : return False
-    if len(field[0]) !=  len(piece[0]) : return False
+    if field == None : return False
+    
     for row in range(len(field)):
         for col in range(len(field[0])):
-            if field[row][col] != '0' and piece[row][col] != 0:
+            if field[row][col] != '0' and piece[row][col] != '0':
+                #print('spot taken')
                 return False
     return True
 
@@ -164,14 +179,150 @@ def insert(board,row,col,piece,rot):
 
     if rot == 1 :
         for i in range(n):
-            board[row-i][col] = piece[0][i]
-            board[row-i][col+1] = piece[1][i]
-        
+            if board[row-i][col] == '0':
+                board[row-i][col] = piece[0][i]
+            if board[row-i][col+1] == '0':
+                board[row-i][col+1] = piece[1][i]
+    elif rot == 2 :
+        for i in range(n):
+            if board[row][col+i] == '0':
+                board[row][col+i] = piece[0][i]
+            if board[row+1][col+i] == '0':
+                board[row+1][col+i] = piece[1][i]
+    elif rot == 3 :
+        for i in range(n):
+            if board[row+i][col]  == '0':
+                board[row+i][col] = piece[0][i]
+            if board[row+i][col-1]  == '0':
+                board[row+i][col-1] = piece[1][i]
+    elif rot == 4 :
+        for i in range(n):
+            if board[row][col-i]  == '0':
+                board[row][col-i] = piece[0][i]
+            if board[row-1][col-i]  == '0':
+                board[row-1][col-i] = piece[1][i]
+            
+def insert_reverse(board,row,col,piece,rot):
+    n = len(piece[0])
     
+    if rot == 1 :
+        insert(board,row-n+1,col+1,piece,3)
+    elif rot == 2 :
+        insert(board,row+1,col+n-1,piece,4)
+    elif rot == 3 :
+        insert(board,row+n-1,col-1,piece,1)
+    elif rot == 4 :
+        insert(board,row-1,col-n-1,piece,2)
 
-print(fits(get_pattern1(level1,1,2),small_pieces['pb']))
 
-print_board(level1)
-insert(level1,2,3,small_pieces['la'],1)
-print_board(level1)
+def get_remaining_pieces(board):
+    used_pieces = []
+    for row in board:
+        for cell in row:
+            if cell not in used_pieces and cell != '0':
+                used_pieces.append(cell)
+
+    remaining_pieces = [key for key in all_pieces.keys() if key[0] not in used_pieces]
+
+    return remaining_pieces
+
+def remove_piece(board, piece):
+    letter = piece[0]
+    for row in range(len(board)):
+        for col in range(len(board[0])):
+            if board[row][col] == letter:
+                board[row][col] = '0'
+
+
+def get_inverse_pattern(pattern):
+    if pattern == None: return None
+    inverse_pattern = [row[::-1] for row in pattern[::-1]]
+    return inverse_pattern
+
+
+
+
+
+def find_spot_and_place(board, piece):
+    piece_length = len(piece[0])
+    free_spots = find_free_spots(board)
+    #if not free_spots:
+    #    return False
+    
+    #row , col = free_spots[0]
+    #print(f'free spot at {row} {col}')
+    
+    for row , col in free_spots:
+        for orientation in range(1,5):
+            pattern = get_pattern(board, row ,col , orientation, piece_length)
+            if fits(pattern, piece):
+                insert(board, row, col, piece, orientation)
+                return True
+            inverse_pattern = get_inverse_pattern(pattern)
+            #print(inverse_pattern)
+            if fits(inverse_pattern, piece):
+                #print(f'inverse fits at {row} {col} {orientation}')
+                insert_reverse(board, row, col, piece, orientation)
+                return True
+    #print('No spot found')
+    return False
+
+moves = 0
+
+def solve(board, remaining_pieces):
+    global moves
+    moves += 1
+    if moves % 100000 == 0:
+        print(moves)
+    #print('Solving')
+    if board[0][6] == 'o':
+        msvcrt.getch()
+    
+    #print(remaining_pieces)
+    if not remaining_pieces and find_free_spots(board):
+        #print('No more pieces but free spots')
+        return False
+    if not remaining_pieces:
+        #print('No more pieces')
+        return True
+    
+    for piece in remaining_pieces:
+        #print(f'Trying piece {piece} out of {remaining_pieces}')
+        # Try to find a spot and if we can place a piece
+        # Go further
+        print_board(board)
+        if find_spot_and_place(board, all_pieces[piece]):
+            if solve(board, get_remaining_pieces(board)):
+                #print('Solved')
+                return True
+            else:
+                remove_piece(board, piece)
+                #print('Not solved')
+        # Else we try next piece in this branch
+            
+                 
+
+def testgame(level):
+    print_board(level)
+    solve(level, get_remaining_pieces(level))
+    print_board(level)
+
+# print_board(level1)
+# solve(level1, get_remaining_pieces(level1))
+# print_board(level1)
+
+# print_board(level20)
+# solve(level20, get_remaining_pieces(level20))
+# print_board(level20)
+# print_board(level115)
+# solve(level115, get_remaining_pieces(level115))
+# print_board(level115)
+
+testgame(level72)
+
+
+
+
+
+
 
